@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
-
+import BalanceBox from '../components/BalanceBox';
+import TransactionForm from '../components/TransactionForm';
+import TransactionTable from '../components/TransactionTable';
 
 function Dashboard() {
     const [transactions, setTransactions] = useState([]);
@@ -27,6 +29,7 @@ function Dashboard() {
 
         fetchTransactions();
         fetchBalance();
+        // eslint-disable-next-line
     }, [navigate])
 
     async function fetchTransactions() {
@@ -113,105 +116,29 @@ function Dashboard() {
         window.scrollTo({ top: 0, behavior: 'smooth' }); // Sobe para o formulário
     };
 
+    const handleCancelEdit = () => {
+        setEditingId(null);
+        setForm({ type: "entrada", value: "", description: "", date: "" });
+    };
 
     return (
-        <div className="flex flex-col items-center min-h-screen p-8 bg-gray-50">
+        <div className="flex flex-col items-center w-full min-h-screen p-8 bg-green-400">
             <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-            <div className="text-xl font-semibold mb-4">
-                Saldo Atual: <span className={balance >= 0 ? "text-green-600" : "text-red-600"}>PYG {balance.toFixed(2)}</span>
-            </div>
-            <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow w-full max-w-xl mb-6 flex flex-col gap-2">
-                <div className="flex gap-2">
-                    <select
-                        name="type"
-                        value={form.type}
-                        onChange={handleChange}
-                        className="border p-2 rounded flex-1"
-                    >
-                        <option value="in">Entrada</option>
-                        <option value="out">Salida</option>
-                    </select>
-                    <input
-                        className="border p-2 rounded flex-1"
-                        name="value"
-                        type="number"
-                        step="0.01"
-                        placeholder="Valor"
-                        value={form.value}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-                <input
-                    className="border p-2 rounded"
-                    name="description"
-                    placeholder="Descripción"
-                    value={form.description}
-                    onChange={handleChange}
-                    required
-                />
-                <input
-                    className="border p-2 rounded"
-                    name="date"
-                    type="date"
-                    value={form.date}
-                    onChange={handleChange}
-                    required
-                />
-                {editingId && (
-                    <button
-                        type="button"
-                        className="bg-gray-300 text-gray-800 p-2 rounded hover:bg-gray-400 mb-2"
-                        onClick={() => {
-                            setEditingId(null);
-                            setForm({ type: "in", value: "", description: "", date: "" });
-                        }}
-                    >
-                        Cancelar edição
-                    </button>
-                )}
-                <button className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
-                    {editingId ? "Salvar edição" : "Adicionar"}
-                </button>
-
-                {error && <div className="text-red-500">{error}</div>}
-                {success && <div className="text-green-600">{success}</div>}
-            </form>
-            <table className="w-full max-w-xl bg-white rounded shadow">
-                <thead>
-                    <tr>
-                        <th className="p-2">Tipo</th>
-                        <th className="p-2">Valor</th>
-                        <th className="p-2">Descripción</th>
-                        <th className="p-2">Data</th>
-                        <th className="p-2">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {transactions.map((tx) => (
-                        <tr key={tx.id}>
-                            <td className="p-2">{tx.type}</td>
-                            <td className="p-2">{tx.value}</td>
-                            <td className="p-2">{tx.description}</td>
-                            <td className="p-2">{tx.date}</td>
-                            <td className="p-2">
-                                <button
-                                    className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700 mr-2"
-                                    onClick={() => handleDelete(tx.id)}
-                                >
-                                    Excluir
-                                </button>
-                                <button
-                                    className="bg-yellow-400 text-white px-2 py-1 rounded hover:bg-yellow-500"
-                                    onClick={() => handleEdit(tx)}
-                                >
-                                    Editar
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <BalanceBox balance={balance} />
+            <TransactionForm
+                form={form}
+                setForm={setForm}
+                onSubmit={handleSubmit}
+                editingId={editingId}
+                onCancelEdit={handleCancelEdit}
+                error={error}
+                success={success}
+            />
+            <TransactionTable
+                transactions={transactions}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+            />
         </div>
     );
 }
